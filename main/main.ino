@@ -1,6 +1,4 @@
-#define DEBUG
-
-void MaFilter(int si=10, int ws=20, int av[7]={0});
+#include "includes.hpp"
 
 void setup() {
     pinMode(13, OUTPUT);
@@ -16,11 +14,15 @@ void setup() {
 }
 
 void loop() {
-    int touchSense = 900;
-    int samplingInterval = 4;
-    int windowSize = 15;
+    int touchSense = TOUCHSENSE;
+    int samplingInterval = SAMPLINGINTERVAL;
+    int windowSize = WINDOWSIZE;
     int analogValues[7]={0};
+    bool keyValues[7];
     MaFilter(samplingInterval, windowSize, analogValues);
+    for(int i=0;i<7;i++) {
+        keyValues[i] = (analogValues[i] < touchSense) ? 1 : 0;
+    }
     #ifdef DEBUG
     Serial.write(27);
     Serial.print("[2J");
@@ -34,13 +36,14 @@ void loop() {
         else if(value < 100) Serial.print("   ");
         else if(value < 1000) Serial.print("  ");
         else Serial.print(" ");
-        Serial.print(String(value) + " | " + String((value < touchSense) ? 1 : 0));
+        Serial.print(String(value) + " | " + String(keyValues[i]));
         Serial.println();
     }
     #endif
     bool uso=0;
-    if(analogValues[0] < touchSense) {tone(3, 442); uso=1;}
-    if(analogValues[1] < touchSense) {tone(3, 496); uso=1;}
+    for(int i=0;i<7;i++) {
+        if(keyValues[i]) {tone(3, keyTones[i]); uso=1;}
+    }
     if(!uso) noTone(3);
 }
 
