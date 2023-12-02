@@ -16,6 +16,11 @@ bool biState=0; // Blink state
 void loop() {
     uint16_t analogValues[7]={0};
     MaFilter(SAMPLINGINTERVAL, WINDOWSIZE, analogValues); // Put filtred values in analogValues
+    uint8_t use=0;
+    for(uint16_t i=0;i<7;i++) {
+        if(analogValues[i] < TOUCHSENSE) {tone(3, keyTones[i]); use=i+1; break;} // Play key
+    }
+    if(!use) noTone(3); // Stop key
     #ifdef DEBUG
         Serial.write(27);    // Serial clear
         Serial.print("[2J"); //
@@ -32,16 +37,12 @@ void loop() {
             Serial.print(String(value) + " | " + String((analogValues[i] < TOUCHSENSE) ? 1 : 0)); // Print data
             Serial.println();
         }
+        Serial.println("Running key: " + String(use) + "\nfrequence: " + String((!use) ? 0 : keyTones[use-1]));
     #else
         // Flip Built in led state
         digitalWrite(13, !biState);
         biState=!biState;
     #endif
-    bool use=0;
-    for(uint16_t i=0;i<7;i++) {
-        if(analogValues[i] < TOUCHSENSE) {tone(3, keyTones[i]); use=1; break;} // Play key
-    }
-    if(!use) noTone(3); // Stop key
 }
 
 void MaFilter(uint8_t si=10, uint8_t ws=20, uint16_t av[7]={0}) {
